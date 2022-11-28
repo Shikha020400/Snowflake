@@ -1,0 +1,915 @@
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF100TCL"."CUSTOMER";
+
+select current_role();
+
+create table parquet_table(
+my_data variant);
+
+select c.key,c.value from parquet_table,
+lateral flatten(input =>my_data) c;
+
+create table Parquet_table(
+my_data variant);
+
+select c.key,c.value from Parquet_table,
+lateral flatten(input => my_data) c;
+
+--How to list user stage
+list @~;
+
+--How to list table stage
+list @%my_stg_table;
+
+show stages;
+
+list @my_stg;
+
+create stage my_db.my_schema.stg03 comment='this is my demo stage';
+show stages like '%03%';
+
+list @~/ch09/;
+
+list @~;
+--table stage
+list @%my_stg_table/;
+
+list @%my_stg_table/my_schema;
+list @%my_stg_table/ pattern='.*.csv';
+
+--How to remove the stages or file from stages
+-------------------------------------------
+--since stages are temp storage, it must be removed
+--after the files are moved to permanent location
+remove @~/ch09/;
+
+remove @%my_stg_table;
+
+show stages;
+drop stage stg03;
+
+create table parquet_table(
+my_data variant
+)
+STAGE_FILE_FORMAT= (TYPE = PARQUET);
+
+list @%parquet_table; --here we have checked whether data is available in tableStage or not
+
+copy into parquet_table from @%parquet_table/Dataa.parquet;
+
+select * from parquet_table;
+
+select * from parquet_table;
+
+SELECT COUNT(ID) FROM MY_STG_TABLE WHERE SHORTFORM = :SHORTFORM_FILTER;
+
+SELECT COUNT(ID) FROM MY_STG_TABLE WHERE AIRPORTNAME = :AIRPORTNAME_FILTER;
+
+create or replace sequence seq_04 start = 10 increment=2 comment="Sequence to be used for airport table";
+
+select seq_04.nextval;
+
+select id, seq_04.nextval from my_stg_table;
+
+list @my_stg;
+
+show tables;
+
+show stages;
+
+list @second_stg;
+
+create table Loan(
+id int,
+Loan_id varchar(50),
+Gender varchar(50)
+);
+
+copy into Loan from @my_stg/LoanData_Raw.csv;
+
+create or replace table Loan(
+id varchar(10),
+Loan_id varchar(50),
+Gender varchar(50)
+);
+
+select * from Loan;
+
+create or replace stream Loan_stream on table Loan;
+
+select * from Loan;
+
+DELETE FROM Loan where Gender= 'Female';
+
+select * from Loan_stream;
+
+list @~;
+
+list@%Loan;
+
+list@%my_stg_table;
+
+list @~/ch09/;
+
+list @~/my_schema;
+
+list @%my_stg_table/my_schema/;
+
+show stages;
+
+list @second_stg;
+
+create table Product_subcategory_csv(
+ProductSubcategoryKey int,
+SubcategoryName varchar(100),
+ProductCategoryKey int
+);
+
+list @externalstage_csv;
+
+select $1,$2,$3 from @externalstage_csv;
+
+
+--Copy the data from Stage to table
+copy into PRODUCT_SUBCATEGORY_CSV
+from @externalstage_csv
+file_format = csv_fileformat;
+
+desc storage integration azure_storage;
+
+copy into product_subcategory_csv
+from @externalstage_csv
+file_format = csv_fileformat;
+
+create table new_table_csv(
+ProductSubcategoryKey int,
+SubcategoryName varchar(100),
+ProductCategoryKey int
+);
+
+desc storage integration new_int;
+
+select $1 from @stg_new;
+
+copy into new_table_csv
+from @stg_new;
+
+drop stage stg_new;
+list @stg2;
+
+copy into new_table_csv from @stg2;
+
+select * from new_table_csv;MY_DB.MY_SCHEMA.STG2;
+
+CREATE TABLE Employee
+(  
+    EmployeeID int,
+    FirstName nvarchar(50) NOT NULL,  
+    LastName nvarchar(50) NOT NULL, 
+    EMail nvarchar(50),
+    Phone varchar(15),
+    HireDate date,
+    Salary int
+)
+data_retention_time_in_days=3;
+
+create table Emp(
+Emp_id int,
+Name varchar(50))
+data_retention_time_in_days=3;
+
+insert into Emp(Emp_id,Name)values(101,'Shikha');
+
+insert into Emp(Emp_id,Name)values(102,'Rekha');
+
+insert into Emp(Emp_id,Name)values(103,'Pankti');
+
+insert into Emp(Emp_id,Name)values(104,'Ayushi');
+
+select * from Emp;
+
+desc table Emp;
+
+show tables like 'Emp';
+
+select count(*) from Emp;
+
+insert into Emp(Emp_id,Name)values(106,'Shreya');
+
+select * from Emp order by EMP_ID;
+
+select count(*)from Emp
+before(statement=>'01a7c52f-0000-c8d2-0002-f4f60001c222');
+
+select count(*)from Emp
+at(statement=>'01a7c52f-0000-c8d2-0002-f4f60001c222');
+
+delete from Emp where Emp_id =104;
+
+--minus operation
+select * from Emp before(statement=>'01a7c546-0000-c73d-0002-f4f60001d212')
+minus
+select * from Emp;
+
+select count(*) from Emp;
+
+select count(*) from Emp at(offset=>-60*7);
+
+alter table EMP
+set data_retention_time_in_days=2;
+
+show tables like 'Emp';
+
+select * from Emp;
+
+drop table Emp;
+
+undrop table Emp;
+
+insert into Emp(Emp_id,Name)values(105,'Abhay'); --01a7c571-0000-c8d2-0002-f4f60001c366
+
+--We can use the clone feature to create a back or snapshot
+create or replace table after_clone clone Emp
+before(statement=>'01a7c571-0000-c8d2-0002-f4f60001c366');
+
+select * from after_clone;
+select * from Emp;
+
+show tables like 'after_clone';
+
+create table tt_as_select as select * from Emp before(statement=>'01a7c571-0000-c8d2-0002-f4f60001c366');
+
+select * from tt_as_select;
+
+select * from Emp;
+
+create table Emp1(
+Emp_id int,
+Name varchar(50)
+);
+--Copying records from one table to another table 
+insert into Emp1(Emp_id,Name)
+select Emp_id, Name from Emp;
+
+select * from Emp1;
+
+--cloning the table using clone keyword
+create table Emp_clone clone Emp;
+
+select * from snowflake.account_usage.table_storage_metrics
+where table_schema='MY_SCHEMA' and 
+table_name in ('EMP_CLONE','EMP');
+
+insert into Emp_clone(Emp_id, Name)values(107,'Yash');
+
+select * from EMP_CLONE;
+
+select * from snowflake.account_usage.table_storage_metrics
+where table_schema='MY_SCHEMA' and 
+table_name in ('EMP','EMP_CLONE');
+
+update EMP_CLONE set Name = 'Shikhs'where Name ='Shikha';
+
+select * from snowflake.account_usage.table_storage_metrics
+where table_schema='MY_SCHEMA' and 
+table_name in ('EMP','EMP_CLONE');
+
+select * from my_db.information_schema.tables where table_name in ('EMP','EMP_CLONE');
+
+create or replace transient table trans(
+Emp_id int,
+Name varchar(50)
+);
+
+insert into trans(Emp_id,Name)
+select * from Emp_clone;
+
+select * from trans;
+
+create or replace transient table trans_clone clone trans;
+
+select * from trans_clone;
+
+create transient table permanent_to_trans clone Emp;
+
+--We can't clone Internal stages
+create stage internal_stage_clone clone my_stg;
+
+ -- We can clone External stages
+create stage external_stage_clone clone externalstage_csv;
+
+show stages;
+show tables;
+list @my_stg;
+
+list @second_stg;
+
+show sequences;
+
+create database db_clone clone my_db;
+
+show databases;
+show schemas;
+show tables;
+
+create share Loan;
+grant usage on database my_db to share Loan;
+grant usage on schema my_db.my_schema to share Loan;
+grant select on table my_db.my_schema.emp to share Loan;
+show grants to share Loan;
+alter share Loan add accounts=KR14421;
+show shares;
+
+select * from Loan;
+select * from Emp;
+show pipes;
+
+create or replace stream emp_stream on table emp;
+create or replace stream emp_stream_append_only on table emp
+append_only = true;
+
+select * from emp;
+
+insert into emp values(104,'Ayushi');
+insert into emp values(107,'Shefali');
+
+delete from emp where emp_id=106;
+
+update emp set Name = 'Harsh'where emp_id = 105;
+update emp set emp_id = 106 where Name = 'Shefali';
+
+select * from emp_stream;
+select * from emp_stream_append_only;
+
+select * from Emp;
+
+-- creation of task
+create table task_table1(
+id number,
+first_name varchar(50)
+);
+
+create or replace sequence task_sequence1
+start = 2
+increment = 2;
+
+alter task task1 resume;
+
+select * from table(information_schema.task_history()) where name = 'TASK1'order by scheduled_time;
+
+select * from task_table1;
+
+show tasks;
+
+desc task task_cron;
+
+select * from table(information_schema.task_history()) where name = 'TASK_CRON';
+
+alter task task_cron resume;
+
+--Customer Tree
+create or replace table task_tree(
+id int autoincrement,
+level varchar,
+first_name varchar
+);
+
+--Root task L1
+create or replace task parent_task
+warehouse='SHIKHAWH'
+schedule = '1 minute'
+ as
+insert into task_tree(level,first_name)values('LEVEL01','REKHA');
+
+--Child task level 2
+create or replace task child_task01
+warehouse='SHIKHAWH'
+AFTER parent_task
+ as
+insert into task_tree(level,first_name)values('LEVEL2_01','SHIKHA');
+
+--Child task level 2
+create or replace task child_task02
+warehouse='SHIKHAWH'
+AFTER parent_task
+ as
+insert into task_tree(level,first_name)values('LEVEL2_01','HARSH');
+
+show tasks;
+
+alter task child_task01 resume;
+alter task child_task02 resume;
+alter task parent_task resume;
+
+show tasks;
+
+select * from task_tree;
+
+select * from table(information_schema.task_history()) where name = 'PARENT_TASK';
+
+show tasks;
+show tables;
+select * from task_table1;
+
+desc task task1; 
+drop task task1;
+alter task task_01 suspend;
+alter task task_cron suspend;
+alter task parent_task suspend;
+alter task child_task01 suspend;
+alter task child_task02 suspend;
+
+select current_role();
+
+create user User01
+password = 'User123'
+comment= 'this is a trial user'
+must_change_password = FALSE;
+
+grant role SECURITYADMIN TO user USER02;
+grant role USERADMIN TO user USER02;
+show users;
+desc task task_01;
+
+--roles 
+create role "DE_PM_ROLE"comment='this is the project manager role for sales project';
+
+--this way security admin will inherit all the privileges of de_pm_role
+--Means security admin can do all the things that de_pm_role can do
+grant role "DE_PM_ROLE" to role securityadmin;
+
+create role "DE_DEV_TEAM"comment='This is the development team';
+grant role "DE_DEV_TEAM" to role de_pm_role;
+
+create role "DE_ANALYST"comment='This is the analyst team';
+grant role "DE_ANALYST" to role de_pm_role;
+
+create role "DE_QA"comment='This is the QA team';
+grant role "DE_QA" to role DE_ANALYST;
+
+--creating users
+create user pm_userr password='User123'comment='this is a pm user'must_change_password=false;
+create user ba_user password='User123'comment='this is a ba user'must_change_password=false;
+create user qa_user01 password='User123'comment='this is a qa user01'must_change_password=false;
+create user qa_user02 password='User123'comment='this is a qa user02'must_change_password=false;
+create user dev_user01 password='User123'comment='this is a dev user01'must_change_password=false;
+create user dev_user02 password='User123'comment='this is a dev user02'must_change_password=false;
+create user dev_user03 password='User123'comment='this is a dev user03'must_change_password=false;
+
+--Assigning roles to users
+grant role de_pm_role to user pm_userr;
+
+grant role de_analyst to user ba_user;
+
+grant role de_qa to user qa_user01;
+grant role de_qa to user qa_user02;
+
+grant role de_dev_team to user dev_user01;
+grant role de_dev_team to user dev_user02;
+grant role de_dev_team to user dev_user03;
+
+grant create warehouse on account to role de_pm_role;
+grant create database on account to role de_pm_role;
+
+select * from emp where emp_id = :emp_id;
+select * from SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.ITEM;
+
+create table item_table(
+id int,
+category varchar 
+);
+
+insert into item_table(id,category)
+select I_ITEM_SK,I_CATEGORY from SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.ITEM;
+
+select * from item_table;
+
+select get_ddl('table','item_table');
+
+list @~;
+
+show tables like 'Emp';
+show tables;
+show stages;
+list @second_stg;
+
+show stages;
+list @external_stage_clone;
+
+select * from emp;
+
+create or replace procedure bare_min()
+returns float
+language javascript
+as
+$$
+return 2.12
+$$
+;
+
+call bare_min();
+
+create or replace procedure num_sp()
+returns number(10,3)
+language sql
+as
+$$
+    begin
+    return 2.1402;
+    end
+$$;
+
+desc procedure num_sp();
+
+create or replace procedure strict_sp(in_par string)
+returns string
+language javascript
+strict
+as
+$$
+var rs = snowflake.execute({sqlText: 
+'delete from EMP where EMP_ID IS 101;'
+})
+return 'That record got deleted';
+$$;
+
+call strict_sp(NULL);
+
+call strict_sp(string);
+
+create or replace procedure with_ip_para(ip_parameter string)
+returns string
+language javascript
+as
+$$
+var_rs = snowflake.execute({sqlText:'DELETE FROM EMP WHERE NAME =''+ip_parameter+''});
+return 'Emp purged as per requested status';
+$$;
+
+select * from emp;
+
+create or replace procedure proc_with_arguments(p_arg1 VARCHAR)
+returns string
+language javascript
+as
+$$
+return P_ARG1;
+$$;
+
+call proc_with_arguments('Procedure with argument1');
+
+create or replace procedure local_variable(p_arg1 varchar)
+returns string
+language javascript
+as
+$$
+var lv_arg1 = P_ARG1;
+return lv_arg1;
+$$;
+
+call local_variable('Procedure with argument1 with local variables');
+
+select * from emp;
+
+create or replace procedure emp_insert( ename varchar)
+returns varchar
+language javascript
+as 
+$$
+var command ="SELECT * FROM EMP WHERE NAME = '"+ENAME+"';";
+var stmt = snowflake.createStatement({sqlText:command});
+var rs = stmt.execute();
+return rs;
+$$;
+
+call emp_insert('Shikha');
+
+create or replace procedure emp_delete( eid float)
+returns varchar
+language javascript
+as 
+$$
+var command ="DELETE FROM EMP WHERE EMP_ID="+EID+";";
+var stmt = snowflake.createStatement({sqlText:command});
+var rs = stmt.execute();
+return "success";
+$$;
+
+CALL EMP_DELETE(106);
+
+create or replace procedure emp_delete_2( ename varchar)
+returns varchar
+language javascript
+as 
+$$
+var command ="DELETE FROM EMP WHERE NAME='"+ENAME+"';";
+var stmt = snowflake.createStatement({sqlText:command});
+var rs = stmt.execute();
+return "success";
+$$;
+
+call emp_delete_2('Ayushi');
+
+create or replace procedure emp_select()
+returns varchar
+language javascript
+as 
+$$
+var return_value =" ";
+var command ="SELECT * FROM EMP;";
+var stmt = snowflake.createStatement({sqlText:command});
+var rs = stmt.execute();
+while(rs.next()){
+return_value +=rs.getColumnValue(1);
+return_value +=" "+rs.getColumnValue(2);
+return_value +="\n";
+}
+return return_value;
+$$;
+
+call emp_select();
+
+select * from emp;
+
+create or replace procedure emp_insertvalue(eid float, name varchar)
+returns varchar
+language javascript
+as
+$$
+var command = "insert into EMP VALUES("+EID+",'"+NAME+"');";
+var stmt = snowflake.createStatement({sqlText:command});
+var rs = stmt.execute();
+return 'Record Inserted';
+$$;
+
+call emp_insertvalue(104,'Ranjan');
+
+select * from emp order by emp_id;
+
+create or replace procedure exception_procedure()
+returns varchar not null
+language javascript
+as 
+$$
+result=""
+try{
+snowflake.execute({sqlText:"select current_role,current_dbs"});
+result= "Succeeded"
+}
+catch(err){
+result = "Failed Code " +err.code;
+result +="\n Message : "+err.message;
+result +="\nStack Trace : \n" +err.stackTraceTxt;
+}
+return result;
+$$
+;
+
+call exception_procedure();
+
+show warehouses;
+select count(1) from table(result_scan(last_query_id(-1)))where upper("size")=upper('X-Small');
+
+create or replace procedure validate_wh_access(wh_type string)
+returns string
+language javascript
+as 
+$$
+var return_val = ""
+try{
+var sql_show_wh = "show warehouses";
+var sql_check_wh = `select count(1) from table(result_scan(last_query_id(-1)))where upper("size")=upper(?)`;
+
+var statement1 = snowflake.createStatement({sqlText:sql_show_wh});
+var statement2 = snowflake.createStatement({sqlText:sql_check_wh,binds :[WH_TYPE]})
+
+statement1.execute();
+var result = statement2.execute();
+
+while(result.next()){
+var wh_access_to_size = result.getColumnValue(1);
+if(wh_access_to_size<1){
+return_val += "You have no access to any warehouse of type "+WH_TYPE;
+throw return_val;
+}else{
+return "You have access to "+wh_access_to_size+ " warehouse(s) of type "+WH_TYPE
+}
+
+}
+
+}
+catch(err){
+return "Error: "+err;
+}
+$$;
+
+call validate_wh_access('X-Small');
+call validate_wh_access('X-Large');
+
+--user defined function
+create or replace table order_userdef(
+order_id int,
+cp number(10,2),
+sp number(10,2),
+quantity number);
+
+insert into order_userdef(order_id, cp,sp,quantity)values(1,10.5,15.5,5);
+insert into order_userdef(order_id, cp,sp,quantity)values(2,10,20,3);
+insert into order_userdef(order_id, cp,sp,quantity)values(3,11,21,4);
+insert into order_userdef(order_id, cp,sp,quantity)values(4,35,50,10);
+
+select * from order_userdef;
+
+create or replace function profit_cal(cp number(10,2),sp number(10,2),quantity number)
+returns number(10,2)
+comment = "This is a simple profit calc"
+as
+$$
+select ((sp-cp)*quantity));
+$$
+;
+
+select order_id,
+cp,
+sp,
+quantity,
+profit_cal(cp,sp,quantity) as profit_udf
+from order_userdef;
+
+select order_id,
+cp,
+sp,
+quantity,
+((sp-cp)* quantity) as profit_udf
+from order_userdef;
+
+ALTER TABLE order_userdef
+ADD country_code string;
+
+insert into order_userdef(country_code) values('US'),('IN'),('GER'),('AUS');
+
+alter table order_userdef
+drop column country_code;
+ --this query will delete all the null rows from table 
+delete from order_userdef where order_id IS NULL;
+
+ALTER TABLE order_userdef
+ADD country_code string;
+
+update order_userdef set country_code='US'where order_id=1;
+update order_userdef set country_code='IN'where order_id=2;
+update order_userdef set country_code='GER'where order_id=3;
+select * from order_userdef;
+
+create or replace function country_name(country_code string)
+returns string
+as
+$$
+select country_code || '-' || case
+    when country_code='US'then 'America'
+    when country_code='IN'then 'India'
+    when country_code='GER'then 'Germany'
+    else 'Unknown'
+end
+$$;
+
+select order_id,
+cp,
+sp,
+quantity,
+profit_cal(cp,sp,quantity) as profit_udf,
+country_code,
+country_name(country_code) as CountryName
+from order_userdef;
+
+--show functions will give the list of inbuilt as well as user functions
+show functions;
+show functions like 'country%';
+show functions like 'max%';
+--if there's a need to check the description of function then it is compulsory to pass a parameter type along with function name else it will give error
+desc function country_name(string);
+ -- this will give the op of the previous query in the form of table
+select * from table (result_scan(LAST_QUERY_ID()));
+
+create or replace secure function secure_sql_udf()
+returns string
+as
+$$
+select 'wow!, my sql secure udf worked'
+$$
+;
+
+select secure_sql_udf();
+
+show functions like 'secure%';
+
+--when we add a word "secure" to the udf then even if i grant access to this function to other user, the function will be executed but when he tries to see what is written inside the body of udf he won't be able to view udf's body
+
+grant usage on database my_db to role public;
+grant usage on schema my_db.my_schema to role public;
+grant usage on function secure_sql_udf() to role public;
+grant usage on warehouse shikhawh to role public;
+
+select secure_sql_udf();
+desc function secure_sql_udf();
+
+show functions;
+
+create or replace function table_udf()
+returns table(name varchar, is_aggregate varchar, is_ansi varchar)
+as
+$$
+select "name","is_aggregate","is_ansi" from table(result_scan('01a89b2c-0000-d80d-0002-f4f6000a926e'))
+where "is_builtin" = 'Y'
+$$;
+
+select * from table(table_udf());
+
+select * from Emp;
+
+create view emp_view as 
+select * from Emp where Emp_id<104;
+
+create table customer_emp(
+empid int, 
+gender varchar, 
+salutation varchar);
+
+drop table customer_emp;
+
+select * from emp_view;
+
+create table customer_fullinfo(
+salutation varchar,
+first_name varchar,
+last_name varchar,
+gender varchar);
+
+insert into customer_fullinfo(salutation,first_name ,last_name,gender)values('Mr','Harsh','Shah','M');
+
+insert into customer_fullinfo(salutation,first_name ,last_name,gender)values('Ms','Niyati','Soni','F');
+
+insert into customer_fullinfo(salutation,first_name ,last_name,gender)values('Mr','Abhay','Shah','M');
+
+insert into customer_fullinfo(salutation,first_name ,last_name,gender)values('Ms','Shikha','Shah','F');
+
+create view customer_Fullname_view as
+select salutation ||'-'||first_name ||'-'||last_name as FullName,
+case
+    when gender='M'then 'Male'
+    when gender='F'then 'Female'
+    else 'Not specified'
+end as Gender
+from customer_fullinfo;
+
+select * from CUSTOMER_FULLNAME_VIEW;
+
+create or replace secure view customer_secure_view as
+select salutation ||'-'||first_name ||'-'||last_name as FullName,
+case
+    when gender='M'then 'Male'
+    when gender='F'then 'Female'
+    else 'Not specified'
+end as Gender
+from customer_fullinfo;
+
+show views;
+show terse views;
+
+--list all views in my account 
+show views in account;
+
+show views like 'customer%';
+
+show views in database my_db;
+
+select get_ddl('view','customer_secure_view');
+
+create or replace materialized  view mat_view as
+select * from customer_fullinfo;
+
+select * from mat_view;
+
+create or replace materialized view mat_view_group as
+select * from emp limit 1;
+
+
+create or replace secure materialized view sec_mat_view as
+select * from Emp;
+
+select * from sec_mat_view;
+
+
+
+
+
+
+
+
+
+
+
+
+
+                           
+
